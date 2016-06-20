@@ -1,5 +1,5 @@
 import * as Router from 'koa-router';
-import * as users from './users';
+import * as users from './';
 
 export const router = new Router();
 
@@ -14,14 +14,10 @@ router.delete('/users/:name', async (ctx,next)=>{
 
 router.put('/users/:name', async (ctx,next)=>{    
   await users.service.add({ name: ctx.params.name });
-  ctx.body = `hello ${ctx.params.name}`;
+  ctx.body = `ok`;
 });
 
 router.post('/users/:name', async (ctx,next)=>{    
   await users.service.set({ name: ctx.params.name });
-  ctx.body = `hello ${ctx.params.name}`;
-});
-
-router.get('/',  async (ctx, next) => {
-  ctx.body = await Promise.resolve('Hello');
+  ctx.body = `ok`;
 });

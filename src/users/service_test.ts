@@ -1,7 +1,7 @@
 import {Users} from './service'
 import {assert} from 'chai';
 
-import * as users from './users';
+import * as users from './';
 
 describe('users', ()=>{
 
@@ -15,4 +15,4 @@ describe('users', ()=>{
         let got = await users.service.get('bob');                
         assert.deepEqual(user, got);                             
     });
-})
+});

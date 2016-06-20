@@ -1,9 +1,8 @@
-import * as Koa from 'koa';
 import {assert} from 'chai';
 import {app} from '../index';
 import * as supertest from 'supertest';
 import {Users} from './service';
-import * as users from './users';
+import * as users from './';
 
 var request = supertest.agent(app.listen());
 

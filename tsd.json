@@ -6,7 +6,7 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "koa/koa.d.ts": {
-      "commit": "1315d46f8066eec8c197914da88e98629ebc2254"
+      "commit": "e325b363f5ee9c72ebde49f1e783ae725f64b7e2"
     },
     "assertion-error/assertion-error.d.ts": {
       "commit": "1315d46f8066eec8c197914da88e98629ebc2254"
@@ -24,6 +24,9 @@
       "commit": "e325b363f5ee9c72ebde49f1e783ae725f64b7e2"
     },
     "superagent/superagent.d.ts": {
+      "commit": "e325b363f5ee9c72ebde49f1e783ae725f64b7e2"
+    },
+    "koa-router/koa-router.d.ts": {
       "commit": "e325b363f5ee9c72ebde49f1e783ae725f64b7e2"
     }
   }
