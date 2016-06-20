@@ -1,0 +1,27 @@
+{
+  "name": "koapp",
+  "version": "0.0.1",
+  "description": "mini api with koa and Typescript",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha built/tests.js",
+    "build": "tsc -p ."
+  },
+  "author": "D10221",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git remote add origin https://github.com/D10221/koapp.git"
+  },
+  "dependencies": {
+    "chai": "^3.5.0",
+    "koa": "^2.0.0",
+    "koa-basic-auth": "^1.1.2",
+    "koa-route": "^2.4.2",
+    "koa-router": "^7.0.1",
+    "mocha": "^2.5.3"
+  },
+  "devDependencies": {
+    "supertest": "^1.2.0"
+  }
+}
