@@ -4,7 +4,9 @@
         "target": "es6",
         "noImplicitAny": false,
         "sourceMap": true,
-        "outDir": "built"
+        "outDir": "built",
+        "experimentalDecorators":true ,
+        "emitDecoratorMetadata": true
     },
     "exclude": [
         "node_modules"

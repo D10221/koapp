@@ -10,7 +10,7 @@ describe('users', ()=>{
     });
 
     it('add/get', async ()=> {
-        let user  = {name: 'bob'};
+        let user  = {name: 'bob', password:'bob'};
         await users.service.add(user);        
         let got = await users.service.get('bob');                
         assert.deepEqual(user, got);                             
