@@ -1,5 +1,3 @@
-import * as Koa from 'koa';
-import {assert} from 'chai';
 import {app} from './index';
 import * as supertest from 'supertest';
 
