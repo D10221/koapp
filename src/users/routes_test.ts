@@ -26,6 +26,7 @@ describe('Users route', () => {
                     .end((e, r) => {
                         if (e) {
                             reject(e)
+                            return;
                         }
                         resolve(r);
                     });
@@ -64,6 +65,7 @@ describe('Users route', () => {
                     .end((e, r) => {
                         if (e) {
                             reject(e)
+                            return;
                         }
                         resolve(r);
                     });
@@ -82,6 +84,7 @@ describe('Users route', () => {
                     .end((e, r) => {
                         if (e) {
                             reject(e)
+                            return;
                         }
                         resolve(r);
                     });
@@ -98,6 +101,7 @@ describe('Users route', () => {
                     .end((e, r) => {
                         if (e) {
                             reject(e)
+                            return;
                         }
                         resolve(r);
                     });
