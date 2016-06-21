@@ -14,16 +14,16 @@
     "url": "git remote add origin https://github.com/D10221/koapp.git"
   },
   "dependencies": {
-    "basic-auth": "^1.0.4",
-    "chai": "^3.5.0",
+    "basic-auth": "^1.0.4",    
     "koa": "^2.0.0",
     "koa-basic-auth": "^1.1.2",
     "koa-bodyparser": "^3.1.0",
-    "koa-router": "^7.0.1",
-    "mocha": "^2.5.3",
+    "koa-router": "^7.0.1",    
     "rx": "^4.1.0"
   },
   "devDependencies": {
+    "mocha": "^2.5.3",
+    "chai": "^3.5.0",
     "supertest": "^1.2.0"
   }
 }
