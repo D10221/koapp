@@ -7,7 +7,7 @@ import * as encoder from '../maps/encoder'
 
 function getStore(storePath: string): Map<string, User> {
 
-    return fs.existsSync(storePath) ? encoder.DeserializeFromFileSync<string, User>(storePath) : null
+    return fs.existsSync(storePath) ? encoder.deserializeFromFileSync<string, User>(storePath) : null
 }
 
 function modifiedKey(key:string) : boolean {
@@ -29,7 +29,7 @@ export function getService(storePath: string): Users {
     subscription = service.events
     .where(e => modifiedKey(e.key))
         .subscribe(e => {
-            encoder.SerializeToFile(storePath, service._users)
+            encoder.serializeToFile(storePath, service._users)
         })
 
     return service;
