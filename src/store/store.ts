@@ -94,63 +94,15 @@ export class Service<TValue> {
     }
 
     set(value: TValue | TValue[]): Promise<this> {
-
-        return new Promise((resolve, reject) => {
-            try {
-
-                value = Array.isArray(value) ? value : [value];
-
-                let changed = false;
-                (value as TValue[]).forEach(x => {
-                    changed = true;
-                    this.internally('set', x);
-                });
-
-                if (changed) {
-                    this.publish('set', value);
-                    this.onSave()
-                    .subscribe(e => { 
-                        if (isError(e)) { reject(e); return; } resolve(this); }
-                        ,e => reject(e));
-                };
-            } catch (e) {
-                reject(e);
-            }
-        });
+         return this.addSetRemove('set', value, this) ;        
     }
 
     remove(value: TValue | TValue[]): Promise<this> {
+         return this.addSetRemove('remove', value, this) ; 
+    }
 
-        value = Array.isArray(value) ? value : [value];
-
-        return new Promise((resolve, reject) => {
-            try {
-
-                let changed = false;
-                (value as TValue[]).forEach(x => {
-                    changed = true;
-                    this.internally('remove', x);
-                });
-
-                if (!changed) { resolve(this); return; }
-
-                this.publish('remove', value);
-                this.onSave()
-                    .subscribe(e => {
-                        if (isError(e)) {
-                            reject(e);
-                            return;
-                        }
-                        resolve(this);
-                    },
-                         /*onError*/ e =>
-                        reject(e)
-                    );
-            }
-            catch (e) {
-                reject(e);
-            }
-        });
+    add(value: TValue | TValue[]): Promise<this> {
+        return this.addSetRemove('add', value, this) ; 
     }
 
     private validate(action: Action, key: TKey, value: TValue) {
@@ -188,35 +140,7 @@ export class Service<TValue> {
             this._values.delete(key);
             return;
         }
-    }
-
-    add(value: TValue | TValue[]): Promise<this> {
-
-        return new Promise((resolve, reject) => {
-
-            try {
-
-                value = Array.isArray(value) ? value : [value];
-
-                let changed = false;
-                (value as TValue[]).forEach(x => {
-                    changed = true;
-                    this.internally('add', x);
-                });
-
-                if (changed) {
-                    this.publish('add', value);
-                    this.onSave()
-                    .subscribe(e => { 
-                        if (isError(e)) { reject(e); return; } resolve(this); }
-                        ,e => reject(e));
-                };
-
-            } catch (e) {
-                reject(e);
-            }
-        })
-    }
+    }    
 
     private addSetRemove<TReturn>(action:Action, value: TValue | TValue[], ret: TReturn) : Promise<TReturn> {
         
