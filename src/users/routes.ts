@@ -9,7 +9,7 @@ router.get('/users/:name', async (ctx, next) => {
   let user = await users.service.get(ctx.params.name)
     .catch(e => {
       if (e.code) {
-        ctx.throw(e.code);
+        ctx.throw(e.code, e.message);
         return;
       }
       ctx.throw(e)
@@ -28,7 +28,7 @@ router.del('/users/:name', async (ctx, next) => {
     .remove({ name: ctx.params.name })
     .catch(e => {
       if (e.code) {
-        ctx.throw(e.code);
+        ctx.throw(e.code, e.message);
         return;
       }
       ctx.throw(e)
@@ -40,11 +40,11 @@ router.del('/users/:name', async (ctx, next) => {
 router.put('/users/', async (ctx, next) => {
 
   let user = await parse(ctx);
-  //if(!user) { ctx.throw(404)  }            
+              
   await users.service.add(user)
     .catch(e => {
       if (e.code) {
-        ctx.throw(e.code);
+        ctx.throw(e.code, e.message);
         return;
       }
       ctx.throw(e)
@@ -61,7 +61,7 @@ router.post('/users/', async (ctx, next) => {
   await users.service.set(user)
     .catch(e => {
       if (e.code) {
-        ctx.throw(e.code);
+        ctx.throw(e.code, e.message);
         return;
       }
       ctx.throw(e)
