@@ -11,17 +11,17 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git remote add origin https://github.com/D10221/koapp.git"
+    "url": "https://github.com/D10221/koapp.git"
   },
   "dependencies": {
     "basic-auth": "^1.0.4",
-    "chain": "git+https://github.com/D10221/chain.git",
     "koa": "^2.0.0",
     "koa-basic-auth": "^1.1.2",
     "koa-bodyparser": "^3.1.0",
     "koa-router": "^7.0.1",
     "map-encoder": "git+https://github.com/D10221/map-encoder.git",
-    "rx": "^4.1.0"
+    "rx": "^4.1.0",
+    "syncedmap": "git+https://github.com/D10221/syncedmap.git"
   },
   "devDependencies": {
     "mocha": "^2.5.3",

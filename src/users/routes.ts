@@ -12,7 +12,7 @@ router.get('/users/:name', async (ctx, next) => {
         ctx.throw(e.code, e.message);
         return;
       }
-      ctx.throw(e)
+      ctx.throw(e);
     });
 
   if (user) {
