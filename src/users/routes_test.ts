@@ -41,7 +41,7 @@ describe('Users route', () => {
                     request.get('/users/bob')
                         .accept('application.json')
                         // ??? 
-                        .expect(200)
+                        .expect(404)
                         .end((e, r) => {
                             if (e) {
                                 resolve(e);

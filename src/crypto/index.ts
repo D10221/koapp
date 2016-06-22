@@ -24,18 +24,21 @@ export function decrypt(text:string) : string {
 }
 
 
-export function tryeDecrypt(text:string) : { value:string , error:Error } {
+export function tryeDecrypt(text:string, onError?: (e:Error)=> void ) : string {
   try {    
-    return { value: decrypt(text) , error: null };
+    return decrypt(text);
   } catch (e) {
-    return { value: null, error:e}; 
+    if(onError) {
+      onError(e);
+    }
+    return text; 
   }
 }
 
-export function tryEncrypt(text:string): { value:string , error:Error } {
+export function tryEncrypt(text:string,  onError?: (e:Error)=> void ) : string {
    try {    
-    return { value: encrypt(text) , error: null };
+    return  encrypt(text);
   } catch (e) {
-    return { value: null, error:e}; 
+    return text; 
   } 
 }
