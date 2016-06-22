@@ -3,7 +3,7 @@ import * as crypt from '../crypto';
 import {KeyValue} from '../common';
 import * as Rx from 'rx';
 import {User} from './User';
-import * as encoder from '../maps/encoder'
+import * as encoder from 'map-encoder';
 
 function getStore(storePath: string): Map<string, User> {
 
@@ -34,6 +34,7 @@ export function getService(storePath: string): Users {
 
     return service;
 }
+export type StoreEvent = 'add' | 'remove' | 'clear' | 'set';
 
 export class Users {
 
@@ -46,6 +47,10 @@ export class Users {
     _events = new Rx.Subject<KeyValue>();
 
     get events(): Rx.Observable<KeyValue> { return this._events.asObservable(); }
+
+    getEvent(event:StoreEvent): Rx.Observable<any> {
+        return this.events.where(e=> e.key == event).select(e=> e.value);
+    }
 
     publish(key: string, value: any) {
         this._events.onNext({ key: key, value: value });
@@ -124,6 +129,14 @@ export class Users {
         this._users.clear();
         this.publish('clear', this);
         return Promise.resolve(this);
+    }
+
+    onChange(observer: Rx.Observer<any>) : Rx.Disposable {
+        return this.getEvent('add')
+            .merge(this.getEvent('set'))
+            .merge(this.getEvent('remove'))
+            .merge(this.getEvent('clear'))
+            .subscribe(observer);
     }
 }
 
