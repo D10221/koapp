@@ -55,15 +55,8 @@ export class Users {
         return new Promise((resolve, reject) => {
             try {
                 let user = this._users.get(key);
-                if (user) {
-
-                    let result = crypt.tryeDecrypt(user.password);
-                    if (result.error) {
-                        reject(result.error);
-                        return;
-                    };
-
-                    user.password = result.value;
+                if (user) {                                        
+                    user.password = crypt.tryeDecrypt(user.password);
                     resolve(user);
                     return;
                 }
@@ -81,10 +74,8 @@ export class Users {
                 rejectEmpty(user);
                 rejectEmpty(user.name);
                 rejectNotFound(this._users, user);
-
-                let result = crypt.tryEncrypt(user.password);
-                if (result.error) { reject(result.error); return; }
-                user.password = result.value;
+                
+                user.password = crypt.tryEncrypt(user.password);
 
                 this._users.set(user.name, user);
                 this.publish('set', user);
@@ -117,10 +108,8 @@ export class Users {
                 rejectEmpty(user);
                 rejectEmpty(user.name);
                 rejectExists(this._users, user);
-
-                let result = crypt.tryEncrypt(user.password);
-                if (result.error) { reject(result.error); return; }
-                user.password = result.value;
+                                
+                user.password = crypt.tryEncrypt(user.password);
 
                 this._users.set(user.name, user);
                 this.publish('add', user);
@@ -157,6 +146,13 @@ function rejectNotFound(users: Map<string, User>, user: User) {
     }
 }
 
-export const Empty = new Error('Null or Undefined');
-export const NotFound = new Error('Not Found');
-export const Exists = new Error('Exists');
+export class MyError extends Error {
+    constructor(message, private code){
+        super(message);
+
+    }
+}
+
+export const Empty = new MyError('Null or Undefined', 400);
+export const NotFound = new MyError('Not Found', 404);
+export const Exists = new MyError('Exists', 409);
