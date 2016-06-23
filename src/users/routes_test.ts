@@ -1,22 +1,30 @@
+import {auth} from '../auth';
+import * as Koa from 'koa';
 import * as path from 'path';
 import {assert} from 'chai';
-import {app} from '../index';
 import * as supertest from 'supertest';
 import * as users from './';
 
 
-var request = supertest.agent(app.listen());
-
-users.storePath = path.join(
-    // BasePath 
-    process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(), 
-    'test.db'
-);
 
 describe('Users route', () => {
-    let userService : users.Service<users.User> = null; ; 
-    beforeEach(async () => {
-        userService = users.service.value;
+
+    let app = new Koa();
+
+    var request = supertest.agent(app.listen());
+
+    //  test path 
+    users.storePath = path.join(
+        // BasePath 
+        process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(),
+        'test.db'
+    );
+    
+    let userService = users.service.value;
+
+    app.use(users.router.routes());
+    
+    beforeEach(async () => {        
         await userService.clear();
     });
 
@@ -30,7 +38,7 @@ describe('Users route', () => {
                 request.get('/users/bob')
                     .accept('application.json')
                     .expect(200)
-                    .expect('{"name":"bob","password":"bob"}')
+                    .expect('{"name":"bob","password":"xxxxxxxx"}')
                     .end((e, r) => {
                         if (e) {
                             reject(e)
@@ -63,11 +71,11 @@ describe('Users route', () => {
             })
         });
 
-        it('put/add/new',async ()=>{
+        it('put/add/new', async () => {
             await new Promise((resolve, reject) => {
                 request.put('/users/')
                     .accept('application.json')
-                    .send({name:"bob",password:"bob"})
+                    .send({ name: "bob", password: "bob" })
                     .expect(200)
                     //.expect('{"name":"bob","password":"bob"}')
                     .end((e, r) => {
@@ -80,13 +88,13 @@ describe('Users route', () => {
             })
         });
 
-        it('post/set/modify',async ()=>{
+        it('post/set/modify', async () => {
             let user = { name: 'bob', password: 'bob' };
             await userService.add(user);
             await new Promise((resolve, reject) => {
                 request.post('/users')
                     .accept('application.json')
-                    .send({name:"bob",password:"bob"})
+                    .send({ name: "bob", password: "bob" })
                     .expect(200)
                     //.expect('{"name":"bob","password":"bob"}')
                     .end((e, r) => {
@@ -99,7 +107,7 @@ describe('Users route', () => {
             })
         });
 
-        it('delete/remove',async ()=>{
+        it('delete/remove', async () => {
             let user = { name: 'bob', password: 'bob' };
             await userService.add(user);
             await new Promise((resolve, reject) => {
@@ -115,9 +123,10 @@ describe('Users route', () => {
                     });
             })
         })
-    })
+    })    
 
 });
+
 
 function isError(e: any): e is Error {
     return e instanceof Error

@@ -1,9 +1,8 @@
-import {Middleware} from '../typings';
+import {Middleware} from '../koa-context';
 import * as crypt from '../crypto';
 import * as path from 'path';
 
 let config = require(path.join(process.cwd(), 'app.config'));
-
 
 export function auth(getUser: (name:string, pass:string)=> any ) : Middleware {
     

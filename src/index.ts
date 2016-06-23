@@ -9,10 +9,10 @@ export const app = new Koa();
 //it doesn't work 
 //app.use(bodyParser());
 
-//Auth
-//app.use(auth(getUser));
+//Auth:  needs a func to ge a user from credentials 
+app.use(auth(users.fromCredentials));
 
-app.use(users.routes);
+app.use(users.router.routes());
 app.use(home.routes);
 
 if (!module.parent){

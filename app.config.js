@@ -1,3 +1,6 @@
 module.exports = {
-    secret: 'ABRACADABRA'
+    secret: 'ABRACADABRA',
+    dmz : [
+        /^\/$/
+    ]
 }
