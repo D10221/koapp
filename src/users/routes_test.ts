@@ -1,14 +1,23 @@
+import * as path from 'path';
 import {assert} from 'chai';
 import {app} from '../index';
 import * as supertest from 'supertest';
 import * as users from './';
 
+
 var request = supertest.agent(app.listen());
 
-describe('Users route', () => {
+users.storePath = path.join(
+    // BasePath 
+    process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(), 
+    'test.db'
+);
 
+describe('Users route', () => {
+    let userService : users.Service<users.User> = null; ; 
     beforeEach(async () => {
-        await users.service.clear();
+        userService = users.service.value;
+        await userService.clear();
     });
 
     describe('get', () => {
@@ -16,7 +25,7 @@ describe('Users route', () => {
         it('get ok', async () => {
 
             let user = { name: 'bob', password: 'bob' };
-            await users.service.add(user);
+            await userService.add(user);
             await new Promise((resolve, reject) => {
                 request.get('/users/bob')
                     .accept('application.json')
@@ -73,7 +82,7 @@ describe('Users route', () => {
 
         it('post/set/modify',async ()=>{
             let user = { name: 'bob', password: 'bob' };
-            await users.service.add(user);
+            await userService.add(user);
             await new Promise((resolve, reject) => {
                 request.post('/users')
                     .accept('application.json')
@@ -92,7 +101,7 @@ describe('Users route', () => {
 
         it('delete/remove',async ()=>{
             let user = { name: 'bob', password: 'bob' };
-            await users.service.add(user);
+            await userService.add(user);
             await new Promise((resolve, reject) => {
                 request.del('/users/bob')
                     .accept('application.json')

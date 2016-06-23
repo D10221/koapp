@@ -19,6 +19,7 @@
     "koa-basic-auth": "^1.1.2",
     "koa-bodyparser": "^3.1.0",
     "koa-router": "^7.0.1",
+    "lazyt": "git+https://github.com/D10221/lazyt.git",
     "map-encoder": "git+https://github.com/D10221/map-encoder.git",
     "rx": "^4.1.0",
     "syncedmap": "git+https://github.com/D10221/syncedmap.git"

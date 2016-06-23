@@ -5,26 +5,26 @@ var parse = require('co-body');
 export const router = new Router();
 
 router.get('/users/:name', async (ctx, next) => {
-
-  let user = await users.service.get(ctx.params.name)
-    .catch(e => {
-      if (e.code) {
-        ctx.throw(e.code, e.message);
-        return;
-      }
-      ctx.throw(e);
-    });
-
-  if (user) {
-    ctx.body = user;
-    return;
+  try {
+    let userService = users.service.value;
+    let user = await userService.get(ctx.params.name);
+    if (user) {
+      ctx.body = user;
+      return;
+    }
+    ctx.throw(404);
+  } catch (e) {
+    if (e.code) {
+      ctx.throw(e.code, e.message);
+      return;
+    }
+    ctx.throw(e);
   }
-  ctx.throw(404);
-
 });
 
 router.del('/users/:name', async (ctx, next) => {
-  await users.service
+  let userService = users.service.value;
+  await userService
     .remove({ name: ctx.params.name })
     .catch(e => {
       if (e.code) {
@@ -38,10 +38,11 @@ router.del('/users/:name', async (ctx, next) => {
 });
 
 router.put('/users/', async (ctx, next) => {
-
+    
   let user = await parse(ctx);
-              
-  await users.service.add(user)
+  
+  let userService = users.service.value;
+  await userService.add(user)
     .catch(e => {
       if (e.code) {
         ctx.throw(e.code, e.message);
@@ -57,8 +58,8 @@ router.post('/users/', async (ctx, next) => {
   if (!user) {
     ctx.throw(401);
   }
-
-  await users.service.set(user)
+  let userService = users.service.value;
+  await userService.set(user)
     .catch(e => {
       if (e.code) {
         ctx.throw(e.code, e.message);

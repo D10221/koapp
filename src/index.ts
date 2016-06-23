@@ -15,7 +15,7 @@ export const app = new Koa();
 app.use(users.routes);
 app.use(home.routes);
 
-
 if (!module.parent){
-    app.listen(process.env.PORT || '3000');
+    process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(),
+    app.listen(process.env.KOA_PORT || '3000');
 }  
