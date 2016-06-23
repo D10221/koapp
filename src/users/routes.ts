@@ -4,8 +4,12 @@ var parse = require('co-body');
 
 export const router = new Router();
 
+/***
+ * get existing user
+ */
 router.get('/users/:name', async (ctx, next) => {
   try {
+
     let userService = users.service.value;
     let user = await userService.get(ctx.params.name);
     if (user) {
@@ -13,6 +17,7 @@ router.get('/users/:name', async (ctx, next) => {
       return;
     }
     ctx.throw(404);
+
   } catch (e) {
     if (e.code) {
       ctx.throw(e.code, e.message);
@@ -22,50 +27,66 @@ router.get('/users/:name', async (ctx, next) => {
   }
 });
 
+/**
+ * Remove User
+ */
 router.del('/users/:name', async (ctx, next) => {
-  let userService = users.service.value;
-  await userService
-    .remove({ name: ctx.params.name })
-    .catch(e => {
-      if (e.code) {
-        ctx.throw(e.code, e.message);
-        return;
-      }
-      ctx.throw(e)
-    });
+  try {
 
-  ctx.body = 'ok';
-});
+    let userService = users.service.value;
+    await userService
+      .remove({ name: ctx.params.name });
+    ctx.body = 'ok';
 
-router.put('/users/', async (ctx, next) => {
-    
-  let user = await parse(ctx);
-  
-  let userService = users.service.value;
-  await userService.add(user)
-    .catch(e => {
-      if (e.code) {
-        ctx.throw(e.code, e.message);
-        return;
-      }
-      ctx.throw(e)
-    });
-  ctx.body = `ok`;
-});
-
-router.post('/users/', async (ctx, next) => {
-  let user = await parse(ctx);
-  if (!user) {
-    ctx.throw(401);
+  } catch (e) {
+    if (e.code) {
+      ctx.throw(e.code, e.message);
+      return;
+    }
+    ctx.throw(e)
   }
-  let userService = users.service.value;
-  await userService.set(user)
-    .catch(e => {
-      if (e.code) {
-        ctx.throw(e.code, e.message);
-        return;
-      }
-      ctx.throw(e)
-    });
-  ctx.body = `ok`;
+});
+
+/**
+ * add new user
+ */
+router.put('/users/', async (ctx, next) => {
+  try {
+
+    let user = await parse(ctx);
+    let userService = users.service.value;
+    await userService.add(user)
+    ctx.body = `ok`;
+
+  } catch (e) {
+    if (e.code) {
+      ctx.throw(e.code, e.message);
+      return;
+    }
+    ctx.throw(e)
+  }
+});
+
+/**
+ * update existing user
+ */
+router.post('/users/', async (ctx, next) => {
+  try {
+
+    let user = await parse(ctx);
+    if (!user) {
+      ctx.throw(401);
+    }
+    let userService = users.service.value;
+    await userService.set(user);
+
+    ctx.body = `ok`;
+
+  } catch (e) {
+    if (e.code) {
+      ctx.throw(e.code, e.message);
+      return;
+    }
+    ctx.throw(e)
+  }
 });
