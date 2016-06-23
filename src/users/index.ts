@@ -64,10 +64,10 @@ export interface User {
     roles?: string[];
 }
 
-export function addUser(u:User){
+export function addUser(u:User) : Promise<any>{
     u.password = crypt.tryEncrypt(u.password);
     if(isEmpty(u.password)) throw PasswordEmpty;
-    service.value.set(u);
+    return service.value.add(u);    
 }
 
 

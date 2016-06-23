@@ -39,11 +39,11 @@ describe('Authenticate', () => {
             ctx.body = "ok";
         }).routes());
 
-    beforeEach(()=>{
+    beforeEach(async ()=>{
         
         let admin = userStore.query.first(u=>u.name == 'admin');
         if(!admin){
-            users.addUser({
+            await users.addUser({
                 name:'admin',
                 password: 'admin',
                 email: 'admin@mail',
