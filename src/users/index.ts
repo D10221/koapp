@@ -7,6 +7,8 @@ import * as Router from 'koa-router';
 import * as users from './';
 var parse = require('co-body');
 
+export const router = new Router();
+
 export let storePath = path.join(
     // BasePath 
     process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(), 
@@ -17,9 +19,23 @@ export let service = new Lazy<syncedmap.Service<User>>(()=>{
     return syncedmap.factory.create<User>( user=> user.name , storePath)
 });
 
+
+export function fromCredentials(name: string, pass: string) : Promise<User> {
+    return new Promise(async (resolve, reject)=>{
+        try{
+            let user = await service.value.get(name)
+            let ok = crypt.decrypt(user.password) == pass;
+            resolve(ok ? user: null );
+        } catch(e){
+            reject(e);
+        }
+    });
+}
+
+
 export function authenticate(user: User): Promise<User> {
     return byName(user.name).then(u=> {
-        let x = crypt.tryeDecrypt(u.password);
+        let x = crypt.tryDecrypt(u.password);
         return x && x.replace(/\s+/,'') != ''  && x == user.password ? user : null ;
     })    
 }
@@ -42,16 +58,18 @@ function isEmpty(x){
     return x!= 0 && x!= null && 'undefined' != typeof x;
 }
 
-export const AnAuthorized =  new Error('unauthorized');
+export const UnAuthorized =  new Error('unauthorized');
 
 export const PasswordEmpty = new Error('empty password');
 
-export function requiresRole(role: string): Router.IMiddleware {
-  return (ctx,next)=> {
-      let user = (ctx.request as any).user;
+export  function requiresRole(role: string): Router.IMiddleware {
+  return async function(ctx,next){
+      const request =  (ctx.request as any);
+      let user = await request.user;
       if(!hasRole(user, role)){
-          ctx.app.context.throw(401);
-          return ;
+          ctx.body = 'forbidden'                
+          ctx.status = 403;                    
+          return;
       }
       next();
   }
@@ -87,13 +105,13 @@ export function encrypt(u:User) : User {
 
 export function decrypt(u:User): User {
     if(u){
-        u.password = crypt.tryeDecrypt(u.password);
+        u.password = crypt.tryDecrypt(u.password);
     }
     return u;
 }
 
 export function hasRole(user:User, role: string) : boolean {
-    if(!user) return false ;
+    if(!user || !user.roles) return false ;
     for(let xrole of user.roles){
         if(role == xrole) {
             return true;
@@ -107,9 +125,8 @@ export function isAdmin(user:User):boolean  {
 }
 
 /**************************
- *          ROUTES
- ***************************/
-export const router = new Router();
+ *         ROUTES         *
+ **************************/
 
 /***
  * get existing user
@@ -198,20 +215,5 @@ router.post('/users/', async (ctx, next) => {
   }
 });
 
-
-/**
- * Validated user ? 
- */
-export function fromCredentials(name: string, pass: string) : Promise<User> {
-    return new Promise(async (resolve, reject)=>{
-        try{
-            let user = await service.value.get(name)
-            let ok = crypt.decrypt(user.name) == pass;
-            resolve(ok ? user: null );
-        } catch(e){
-            reject(e);
-        }
-    });
-}
 
 

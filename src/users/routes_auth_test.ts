@@ -20,7 +20,7 @@ describe('Authenticate', () => {
     );
 
     let userStore = users.service.value;
-    
+
     //Unsecured
     app.use(home.routes);
     //Auth
@@ -28,26 +28,33 @@ describe('Authenticate', () => {
     //Secured
     app.use(users.router.routes());
 
-    app.use(new Router().get('/secret',
+    let testRouter = new Router();
+    
+    testRouter.get('/secret',
         (ctx, next) => {
             ctx.body = "ok";
-        }).routes());
+        });
 
-    app.use(new Router().get('/super/secret',
+    testRouter.get('/super/secret',
         users.requiresRole('batman'),
         (ctx, next) => {
             ctx.body = "ok";
-        }).routes());
+        });
 
-    beforeEach(async ()=>{
-        
-        let admin = userStore.query.first(u=>u.name == 'admin');
-        if(!admin){
+     testRouter.get('/error', (ctx, next)=> {
+         ctx.body = 'error';
+     });
+
+    app.use(testRouter.routes());    
+
+   
+    beforeEach(async () => {
+        if (!userStore.has('admin')) {
             await users.addUser({
-                name:'admin',
+                name: 'admin',
                 password: 'admin',
                 email: 'admin@mail',
-                roles:[ 'admin']
+                roles: ['admin']
             });
         }
     })
@@ -83,12 +90,12 @@ describe('Authenticate', () => {
             });
     });
 
-     //** secured : only accesible to 'batman'
-    it('expects secured to batman 401', async (done) => {
+    //** secured : only accesible to 'batman'
+    it('expects secured to batman 403 forbidden', async (done) => {
         let e = null;
         request.get('/super/secret')
             .set('Authentication', `Basic ${new Buffer('admin:admin').toString('Base64')}`)
-            .expect(401).end((err, res) => {
+            .expect(403).end((err, res) => {
                 if (err) throw err;
                 done();
             });

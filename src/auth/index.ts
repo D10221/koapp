@@ -21,8 +21,7 @@ export function auth(getUser: (name:string, pass:string)=> any ) : Middleware {
         let user = getUser(parts[1], parts[2]);
         if(!user) ctx.throw(401);
 
-        //ctx.app as App        
-        (ctx as any).user = user;        
+        (ctx.request as any).user = user;        
         next();
     }
 }

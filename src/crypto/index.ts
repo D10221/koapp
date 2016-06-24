@@ -24,7 +24,7 @@ export function decrypt(text:string) : string {
 }
 
 
-export function tryeDecrypt(text:string, onError?: (e:Error)=> void ) : string {
+export function tryDecrypt(text:string, onError?: (e:Error)=> void ) : string {
   try {    
     return decrypt(text);
   } catch (e) {
