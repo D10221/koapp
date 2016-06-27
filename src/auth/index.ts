@@ -1,3 +1,5 @@
+// from 'koa-basic-auth'
+
 import {Middleware} from '../koa-context';
 import * as crypt from '../crypto';
 import * as path from 'path';

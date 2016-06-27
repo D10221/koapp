@@ -5,13 +5,17 @@ import {assert} from 'chai';
 import * as supertest from 'supertest';
 import * as users from './';
 import * as home from '../home';
-import * as Router from 'koa-router';
+import * as router from 'koa-route-ts';
+
+function listen(app) {
+    return app.listen();
+}
 
 describe('Authenticate', () => {
 
     let app = new Koa();
 
-    var request = supertest.agent(app.listen());
+    var request = supertest.agent(listen(app));
     //  test path 
     users.storePath = path.join(
         // BasePath 
@@ -22,32 +26,27 @@ describe('Authenticate', () => {
     let userStore = users.service.value;
 
     //Unsecured
-    app.use(home.routes);
+    home.routes.forEach(route => app.use(route));
     //Auth
     app.use(auth(users.fromCredentials));
     //Secured
-    app.use(users.router.routes());
+    users.routes.forEach(route => app.use(route));
+    app.use(
+        router.get('/secret',
+            (ctx, next) => {
+                ctx.body = "ok";
+            }));
 
-    let testRouter = new Router();
-    
-    testRouter.get('/secret',
+    app.use(router.get('/super/secret',
+        //users.requiresRole('batman'),
         (ctx, next) => {
             ctx.body = "ok";
-        });
+        }));
 
-    testRouter.get('/super/secret',
-        users.requiresRole('batman'),
-        (ctx, next) => {
-            ctx.body = "ok";
-        });
+    app.use(router.get('/error', (ctx, next) => {
+        ctx.body = 'error';
+    }));    
 
-     testRouter.get('/error', (ctx, next)=> {
-         ctx.body = 'error';
-     });
-
-    app.use(testRouter.routes());    
-
-   
     beforeEach(async () => {
         if (!userStore.has('admin')) {
             await users.addUser({

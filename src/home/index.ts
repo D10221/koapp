@@ -1,9 +1,11 @@
-import * as Router from 'koa-router';
+import * as Koa from 'koa';
+import * as router from 'koa-route-ts';
 
-let router = new Router();
+export const routes : router.KoaMiddleware[] = [] ;
 
+routes.push(
 router.get('/',  async (ctx, next) => {
   ctx.body = await Promise.resolve('Hello');
-});
+})
+);
 
-export const routes = router.routes() ;

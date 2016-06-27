@@ -12,8 +12,11 @@ export const app = new Koa();
 //Auth:  needs a func to ge a user from credentials 
 app.use(auth(users.fromCredentials));
 
-app.use(users.router.routes());
-app.use(home.routes);
+users.routes
+    .forEach(route=> 
+        app.use(route));
+
+home.routes.forEach(route => app.use(route));
 
 if (!module.parent){
     process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(),

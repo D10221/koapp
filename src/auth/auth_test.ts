@@ -1,7 +1,9 @@
 import * as auth from './';
 import * as Koa from 'koa'; 
 import * as st from 'supertest';
-
+function listen(app){
+    return app.listen();
+}
 describe('auth', ()=> {
     
     it('200',async ()=>{
@@ -11,7 +13,7 @@ describe('auth', ()=> {
         app.use((ctx,next)=>{
             ctx.body = (ctx.request as any).user ? 'success' : null;            
         })
-        let request = st(app.listen());
+        let request = st(listen(app));
         await new Promise((resolve,reject)=>{
             request
             .get('/')
@@ -42,7 +44,7 @@ describe('auth', ()=> {
             throw('Should not reach this point');
             //ctx.body = (ctx.request as any).user;
         })
-        let request = st(app.listen());
+        let request = st(listen(app));
         await new Promise((resolve,reject)=>{
             request
             .get('/')
