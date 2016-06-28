@@ -17,6 +17,7 @@
     "tape": "registry:npm/tape#4.0.0+20160622192935"
   },
   "dependencies": {
-    "chai": "registry:npm/chai#3.5.0+20160415060238"
+    "chai": "registry:npm/chai#3.5.0+20160415060238",
+    "debug": "registry:npm/debug#2.0.0+20160511151334"
   }
 }

@@ -1,12 +1,16 @@
 // from 'koa-basic-auth'
-
 import {Middleware} from '../koa-context';
 import * as crypt from '../crypto';
 import * as path from 'path';
 
 let config = require(path.join(process.cwd(), 'app.config'));
 
-export function auth(getUser: (name:string, pass:string)=> any ) : Middleware {
+export interface Credentials {
+    name: string;
+    password: string;
+}
+
+export function auth(getUser: (name:string, pass:string)=> Promise<Credentials> ) : Middleware {
     
     let regex = /Basic\s+(.*)/i;    
     
@@ -20,7 +24,7 @@ export function auth(getUser: (name:string, pass:string)=> any ) : Middleware {
         
         let parts = /^([^:]*):(.*)$/.exec(auth);
                              
-        let user = getUser(parts[1], parts[2]);
+        let user = await  getUser(parts[1], parts[2]);
         if(!user) ctx.throw(401);
 
         (ctx.request as any).user = user;        

@@ -1,152 +1,150 @@
 import * as test from 'tape';
 import {auth} from '../auth';
 import * as Koa from 'koa';
+import *  as http from 'http';
 import * as path from 'path';
 import * as supertest from 'supertest';
 import * as users from './';
+import {UserService, iUserService} from './service';
+import * as Debug from 'debug';
+const debug = Debug('koapp');
 
-function listen(app) {
+function listen(app): http.Server {
     return app.listen();
 }
 
-let app = new Koa();
+const getStore = async () : Promise<iUserService>=> {
+    try {
+        const users = new UserService( path.join(
+            // BasePath 
+            process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(),
+            'test.db'
+        ));
+                
+        await users.clear();
+        await users.add({
+            name: 'admin',
+            password: 'admin',
+            email: 'admin@mail',
+            roles: ['admin']
+        });
+        users.timeOut = 0;
+        return users;
+    } catch (error) {
+        debug(`settingUpStore: ${error.message}`);
+        process.exit();
+    }
+}
 
-var request = supertest.agent(listen(app));
-
-//  test path 
-users.storePath = path.join(
-    // BasePath 
-    process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(),
-    'test.db'
-);
-
-users.service.value.timeOut = 0;
-
-users.routes.forEach(route =>
-    app.use(route)
-);
-
-test.onFinish((err)=>{
-    if(isError(err)){
-        console.log(`Tape error: ${err.message}`);
+test.onFinish((err) => {
+    if (err) {
+        debug(`Tape error: ${err.message}`);
     }
     process.exit();
 })
 
-test('get ok', async (t) => {
-    await users.service.value.clear();
+test('get ok', { skip: false }, async (t) => {
+    //app: Setup ...
+    let app = new Koa();
+    var request = supertest.agent(listen(app));
+    app.use(users.routes.get);
+    //app.use(users.getUserRoute)
+    //this: test Setup
+    const service = await getStore();
     let user = { name: 'bob', password: 'bob' };
-    await users.service.value.add(user);
-    await new Promise((resolve, reject) => {
-        request.get('/users/bob')
-            .accept('application.json')
-            .expect(200)
-            .expect('{"name":"bob","password":"xxxxxxxx"}')
-            .end((err, res) => {
-                if (err) {
-                    reject(err)
-                    return;
-                }
-                resolve(res);
-                t.end();
-            });
-    })
+    await service.add(user);
+    request.get('/users/bob')
+        .accept('application.json')
+        .expect(200)
+        .expect('{"name":"bob","password":"xxxxxxxx"}')
+        .end((err, res) => {
+            t.assert(err == null);
+            t.end();
+        });
 });
 
-test('Throws NotFound', async (t) => {
-
-    let user = { name: 'bob', password: 'bob' };
-    let ex = await new Promise((resolve, reject) => {
-        try {
-            request.get('/users/bob')
-                .accept('application.json')
-                // ??? 
-                .expect(404)
-                .end((e, r) => {
-                    if (e) {
-                      reject(e);
-                      return;
-                    }
-                    resolve({});
-                });
-        } catch (e) {
-            reject(e)
-        }
-    })
-    t.end();
+test('Throws NotFound', { skip: false }, async (t) => {
+    //app: Setup ...
+    let app = new Koa();
+    var request = supertest.agent(listen(app));
+    app.use(users.routes.get);
+    const service = await getStore();
+    
+    //this: test Setup    
+    request.get('/users/bob')
+        .accept('application.json')
+        // ??? 
+        .expect(404)
+        .end((e, r) => {
+            t.assert(!e);
+            t.end()
+        });
 });
 
-test('put/add/new', async (t) => {
-    await users.service.value.clear();
+test('put/add/new', { skip: false }, async (t) => {
+    //app: Setup ...
+    let app = new Koa();
+    app.use(users.routes.put);
+    //app.use(users.addNewUserRoute);
+    var request = supertest.agent(listen(app));
+    const service = await getStore();
+    //this: test Setup
+    
     request.put('/users')
         .accept('application.json')
         .send({ name: "bob", password: "bob" })
-        .expect(200, (e) => {
-            if (e && 'error' == typeof (e)) {
-                  t.fail(e.message);
-                    return;
-            }
-            users.service.value.get('bob').then(bob => {
-                if (bob.name == 'bob') {
-                    t.end();
-                    return;
-                }
-                throw new Error('Not Bob');
-
-            })
-
+        .expect(200, async (e) => {
+            t.assert(!e);
+            let bob = await service.byName('bob');
+            t.assert(bob.name == 'bob');
+            t.end();
         });
 });
 
 
-test('post/set/modify', async (t) => {
-    let service = users.service.value;
-    await users.service.value.clear();
-    let user = { name: 'bob', password: 'bob1' };
-    service.add(user).then(() => {
-        request.post('/users')
-            .accept('application.json')
-            .send({ name: "bob", password: "bob" })
-            .expect(200)
-            //.expect('{"name":"bob","password":"bob"}')
-            .end((e, r) => {
-                if (e && 'error' == typeof (e)) {
-                    t.fail(e.message);
-                    return;
-                }
-                service.get('bob').then(bob => {
-                    if (bob.password != 'bob1') {
-                        t.fail('Bad Password');                                                
-                    } else {
-                        t.end();
-                    }
-                })
-            });
-    })
+test('post/set/modify', { skip: false }, async (t) => {
+    //app: Setup ...
+    let app = new Koa();
+    var request = supertest.agent(listen(app));
+    app.use(users.routes.set);    
+    const service = await getStore();
+    //this: test Setup
+        
+    let user = { name: 'bob', password: 'bob' };
+    await service.add(user);
 
+    request.post('/users')
+            .accept('application.json')
+            .send({ name: "bob", password: "bob1" })
+            .expect(200)
+            .end(async (e, r) => {
+                t.assert(e == null);
+                let bob = await service.byName('bob');
+                t.assert(bob.password == 'bob1');
+                t.end();
+            });
 });
 
-test('delete/remove',  async (t) => {
-    await users.service.value.clear();
-    this.timeout = 5000;
+test('delete/remove', { skip: false }, async (t) => {
+    //app: Setup ...
+    let app = new Koa();
+    var request = supertest.agent(listen(app));
+    app.use(users.routes.del);
+   //app.use(users.deleteUserRoute);
+    const service = await getStore();
+
+    //this: test Setup    
     let user = { name: 'bob', password: 'bob' };
-    users.service.value.add(user).then(x => {
-        request.del('/users/bob')
-            .accept('application.json')
-            .expect(200)
-            .end((e, r) => {
-                if (e) {
-                    t.fail(e.message);
-                    return;
-                }
-                users.service.value.get('bob').then(bob => {
-                    if (bob) {
-                        t.fail('shouldn\'t be there');
-                    }
-                    t.end()
-                })
-            });
-    });
+    await service.add(user);
+    request.del('/users/bob')
+        .accept('application.json')
+        .expect(200)
+        .end(async (e, r) => {
+            t.assert(!e);
+            let bob = await service.byName('bob');
+            t.assert(!bob);
+            t.end();
+        });
 })
 
 function isError(e: any): e is Error {

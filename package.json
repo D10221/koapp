@@ -3,11 +3,10 @@
   "version": "0.0.1",
   "description": "mini api with koa and Typescript",
   "main": "index.js",
-  "scripts": {
-    "test": "npm run build && mocha built/tests.js",
-    "build": "tsc -p .",
+  "scripts": {    
+    "build": "tsc -p . || true",
     "clean": "rm  -rf ./built",
-    "tape": "npm run build && tape built/tape.js"
+    "test": "SET DEBUG=koapp && npm run build && tape built/tests.js || true"
   },
   "author": "D10221",
   "license": "ISC",
@@ -29,6 +28,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "cross-env": "^1.0.8",
     "mocha": "^2.5.3",
     "supertest": "^1.2.0",
     "tape": "^4.6.0"

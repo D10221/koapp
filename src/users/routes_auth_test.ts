@@ -1,112 +1,163 @@
 import {auth} from '../auth';
 import * as Koa from 'koa';
 import * as path from 'path';
-import {assert} from 'chai';
 import * as supertest from 'supertest';
+import * as superagent  from  'superagent';
 import * as users from './';
 import * as home from '../home';
 import * as router from 'koa-route-ts';
+import * as test from 'tape';
+import * as http from 'http';
+import * as util from '../util';
+import * as Debug from 'debug';
+import {UserService} from './service';
+const debug = Debug('koapp');
+//process.env.Debug = 'koapp:users:auth:test';
+import delay = util.delay;
+import Test = test.Test;
+import SuperTest = supertest.SuperTest;
+type TestRequest = superagent.Request<supertest.Test>;
 
-function listen(app) {
+function listen(app): http.Server {
     return app.listen();
 }
 
-describe('Authenticate', () => {
-
-    let app = new Koa();
-
-    var request = supertest.agent(listen(app));
-    //  test path 
-    users.storePath = path.join(
-        // BasePath 
-        process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(),
-        'test.db'
-    );
-
-    let userStore = users.service.value;
-
-    //Unsecured
-    home.routes.forEach(route => app.use(route));
-    //Auth
-    app.use(auth(users.fromCredentials));
-    //Secured
-    users.routes.forEach(route => app.use(route));
-    app.use(
-        router.get('/secret',
-            (ctx, next) => {
-                ctx.body = "ok";
-            }));
-
-    app.use(router.get('/super/secret',
-        //users.requiresRole('batman'),
-        (ctx, next) => {
-            ctx.body = "ok";
-        }));
-
-    app.use(router.get('/error', (ctx, next) => {
-        ctx.body = 'error';
-    }));    
-
-    beforeEach(async () => {
-        if (!userStore.has('admin')) {
-            await users.addUser({
-                name: 'admin',
-                password: 'admin',
-                email: 'admin@mail',
-                roles: ['admin']
-            });
-        }
-    })
-
-    /**
-     * '/' is registered before auth 
-     */
-    it('expects unsecured 200', async (done) => {
-        let e = null;
-        request.get('/').expect(200).end((err, res) => {
-            if (err) throw err;
-            done();
-        });
-    });
-
-    //** secured 
-    it('expects 401', async (done) => {
-        let e = null;
-        request.get('/secret').expect(401).end((err, res) => {
-            if (err) throw err;
-            done();
-        });
-    });
-
-    //** secured 
-    it('expects secured 200', async (done) => {
-        let e = null;
-        request.get('/secret')
-            .set('Authentication', `Basic ${new Buffer('admin:admin').toString('Base64')}`)
-            .expect(200).end((err, res) => {
-                if (err) throw err;
-                done();
-            });
-    });
-
-    //** secured : only accesible to 'batman'
-    it('expects secured to batman 403 forbidden', async (done) => {
-        let e = null;
-        request.get('/super/secret')
-            .set('Authentication', `Basic ${new Buffer('admin:admin').toString('Base64')}`)
-            .expect(403).end((err, res) => {
-                if (err) throw err;
-                done();
-            });
-    });
-
-
+test.onFinish(e => {
+    if (e) debug(`Test completed with error: ${e.message}`);
+    process.exit();
 })
 
-function delay(milisecond): Promise<any> {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(true);
-        }, milisecond);
-    });
+const getStore = async () => {
+    try {
+        const users = new UserService( path.join(
+            // BasePath 
+            process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(),
+            'test.db'
+        ));
+                
+        await users.clear();
+        await users.add({
+            name: 'admin',
+            password: 'admin',
+            email: 'admin@mail',
+            roles: ['admin']
+        });
+        return users;
+    } catch (error) {
+        debug(`settingUpStore: ${error.message}`);
+        process.exit();
+    }
 }
+
+const getRequest = () => {
+    let app = new Koa()
+        .use(
+        //Unsecured
+        router.get('/public',
+            async function (args, next) {
+                let ctx: Koa.Context = this;
+                await delay(5);
+                ctx.body = "ok";
+            }))
+        //Auth   
+        //.use(auth(users.fromCredentials))
+        //Secured
+        .use(router.get('/secret',
+            async function (args, next) {
+                let ctx: Koa.Context = this;
+                await delay(5);
+                ctx.body = "ok";
+            }))
+        //By Role
+        .use(router.get('/super/secret',
+            //users.requiresRole('batman'),
+            async function (args, next) {
+                let ctx: Koa.Context = this;
+                await delay(5);
+                ctx.body = "ok";
+            }))
+        //...
+        .use(router.get('/error',
+            async function (args, next) {
+                let ctx: Koa.Context = this;
+                await delay(5);
+                ctx.body = 'error';
+            }));
+
+    // app.onerror(err=>{
+    //     debug(`Koa: Error: ${err.message}`);
+    // })
+
+    return supertest.agent(listen(app));
+}
+
+test('public:200', { skip: false }, async (t) => {
+
+    getRequest().get('/public').expect(200).end(async (err, res) => {
+        await delay(5);
+        t.assert(!err);
+        if (err) debug(err.message);
+        t.end();
+    });
+});
+test('secret:401', { skip: false }, async (t) => {
+    let store = getStore();
+    let request = getRequest();
+    //secured
+    request.get('/secret').expect(401).end(async (err, res) => {
+        await delay(5);
+        t.assert(!err);
+        if (err) debug(`Agent: Error: ${err.message}`);
+        t.end();
+    });
+});
+
+test('secret:200', { skip: false }, async (t) => {
+
+    let store = getStore();
+
+    let request = getRequest();
+    let a = `Basic ${new Buffer('admin:admin').toString('Base64')}`;
+    request.get('/secret')
+        .set('Authentication', a)
+        .expect(200).end(async (err, res) => {
+            await delay(5);
+            t.assert(!err);
+            if (err) debug(`Agent: Error: ${err.message}`);
+            t.end();
+        });
+});
+
+
+test('super-secret:409', { skip: true }, async (t) => {
+
+    let store = getStore();
+
+    let request = getRequest();
+
+    request.get('/secret')
+        .set('Authentication', `Basic ${new Buffer('admin:admin').toString('Base64')}`)
+        .expect(409).end(async (err, res) => {
+            await delay(5);
+            t.assert(!err);
+            if (err) debug(`Agent: Error: ${err.message}`);
+            t.end();
+        });
+});
+
+
+test('super-secret:200', { skip: true }, async (t) => {
+
+    let store = getStore();
+
+    let request = getRequest();
+
+    request.get('/secret')
+        .set('Authentication', `Basic ${new Buffer('admin:admin').toString('Base64')}`)
+        .expect(200).end(async (err, res) => {
+            await delay(5);
+            t.assert(!err);
+            if (err) debug(`Agent: Error: ${err.message}`);
+            t.end();
+        });
+});
