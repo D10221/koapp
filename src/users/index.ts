@@ -1,7 +1,7 @@
 import * as Koa from 'koa';
 import {Lazy} from 'lazyt'
 import * as router from 'koa-route-ts';
-import {UserService} from './service';
+import { iUserService ,UserService} from './service';
 import {delay, isEmpty, isString} from '../util';
 
 var parse = require('co-body');
@@ -15,9 +15,8 @@ export interface User {
     roles?: string[];
 }
 
-const users = ()=>{
-    return UserService.default;
-}
+export let service:iUserService  = UserService.default;
+
 /**
  * ROUTES
  **/
@@ -28,7 +27,7 @@ export const routes = {
     get: router.get('/users/:name', async function (name, next) {
         let ctx: Koa.Context = this;
         try {
-            let user = await users().byName(name); // .then(maskPassword);
+            let user = await service.byName(name); // .then(maskPassword);
             if (user) {
                 ctx.body = user;
                 return;
@@ -50,7 +49,7 @@ export const routes = {
         let ctx: Koa.Context = this;
         
         try {
-            await users()
+            await service
                 .remove({ name: name });
             ctx.body = 'ok';
 
@@ -70,7 +69,7 @@ export const routes = {
         try {
 
             let user = await parse(ctx);
-            await users().add(user);
+            await service.add(user);
             ctx.body = `ok`;
 
         } catch (e) {
@@ -91,7 +90,7 @@ export const routes = {
             if (!user) {
                 ctx.throw(401);
             }
-            await users().set(user);
+            await service.set(user);
             ctx.body = `ok`;
         } catch (e) {
             if (e.code) {

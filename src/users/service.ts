@@ -13,6 +13,7 @@ export interface iUserService {
     clear():Promise<this>
     fromCredentials(name: string, pass: string): Promise<User>;
     timeOut:number;
+    init():Promise<this>;
 }
 
 export let default_instance: iUserService = null;
@@ -24,17 +25,24 @@ export class UserService implements iUserService {
     }
 
     _store: syncedmap.Service<User>;
+
     get store() {
         return this._store || (
             this._store = syncedmap.factory.create<User>(user => user.name, this.storePath)
         );
     }
+
     constructor(private storePath?: string) {
         storePath = storePath || path.join(
             // BasePath 
             process.env.KOA_STORE ? process.env.KOA_STORE : process.cwd(),
             'users.db'
         );
+    }
+
+    async init(){
+        //...
+        return this;
     }
     get timeOut() : number {
         return this.store.timeOut;
