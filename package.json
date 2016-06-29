@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "description": "mini api with koa and Typescript",
   "main": "index.js",
-  "scripts": {    
+  "scripts": {
     "build": "tsc -p . || true",
     "clean": "rm  -rf ./built",
-    "test": "SET DEBUG=koapp && npm run build && tape built/tests.js || true"
+    "test": "export DEBUG=koapp || SET DEBUG=koapp || true && npm run build && tape built/tests.js || true"
   },
   "author": "D10221",
   "license": "ISC",
